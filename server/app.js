@@ -22,7 +22,7 @@ mongoose
 
 // Routes
 app.use("/api", userRoutes);
-app.use("/api/tasks", taskRoutes);
+app.use("/", taskRoutes);
 
 app.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)

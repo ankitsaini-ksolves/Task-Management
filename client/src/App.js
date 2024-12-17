@@ -4,11 +4,18 @@ import Signup from "./pages/Signup";
 import "./App.css";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
+import { useSelector } from "react-redux";
+import Navbar from "./components/Navbar";
+import MyTask from "./pages/MyTask";
+import Friends from "./pages/Friends";
 
 function App() {
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+
   return (
     <div className="App">
       <Router>
+        {isAuthenticated && <Navbar />}
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -17,6 +24,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-task"
+            element={
+              <ProtectedRoute>
+                <MyTask />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/friends"
+            element={
+              <ProtectedRoute>
+                <Friends />
               </ProtectedRoute>
             }
           />

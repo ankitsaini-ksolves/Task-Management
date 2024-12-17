@@ -4,7 +4,6 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 
 router.post("/signup", async (req, res) => {
-  console.log("Inside signup");
   const { username, email, password } = req.body;
 
   try {
@@ -36,12 +35,12 @@ router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid email" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid password" });
     }
 
     res.status(200).json({

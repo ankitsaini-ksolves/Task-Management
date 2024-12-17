@@ -31,60 +31,75 @@ const Signup = () => {
 
   return (
     <div className="container d-flex justify-content-center align-items-center vh-100">
-      <div
-        className="card p-4 shadow"
-        style={{ maxWidth: "400px", width: "100%" }}
-      >
-        <h2 className="text-center mb-4">Sign Up</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="username" className="form-label">
-              Username
-            </label>
-            <input
-              type="text"
-              className="form-control"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div
+          className="d-flex flex-row rounded-4 shadow-lg bg-white"
+          style={{ maxWidth: "800px", height: "500px" }}
+        >
+          <div
+            className="d-flex align-items-center justify-content-center p-4"
+            style={{ flex: 1 }}
+          >
+            <img
+              src="/images/login.jpg"
+              alt="No Image"
+              className="img-fluid rounded-4 w-90"
+              style={{ height: "320px" }}
             />
           </div>
-          <div className="mb-3">
-            <label htmlFor="email" className="form-label">
-              Email
-            </label>
-            <input
-              type="email"
-              className="form-control"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+          <div className="p-5" style={{ flex: 1 }}>
+            <h2 className="text-center mb-2">Sign Up</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label htmlFor="email" className="form-label">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="email" className="form-label">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  className="form-control"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label htmlFor="password" className="form-label">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  className="form-control"
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              {error && <div className="alert alert-danger p-2 mb-2">{error}</div>}
+              <button type="submit" className="btn btn-primary w-100">
+                Sign Up
+              </button>
+            </form>
+            <div className="text-center mt-3">
+              <p>
+                Already have an account? <Link to="/login">Login</Link>
+              </p>
+            </div>
           </div>
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              Password
-            </label>
-            <input
-              type="password"
-              className="form-control"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          {error && <div className="alert alert-danger">{error}</div>}
-          <button type="submit" className="btn btn-primary w-100">
-            Sign Up
-          </button>
-        </form>
-        <div className="text-center mt-3">
-          <p>
-            Already have an account? <Link to="/login">Login</Link>
-          </p>
         </div>
       </div>
     </div>
