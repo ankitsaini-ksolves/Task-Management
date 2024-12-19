@@ -2,6 +2,9 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../redux/authSlice";
+import "../App.css";
+
+import NotificationDropdown from "./NotificationDropdown";
 
 const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
@@ -48,6 +51,7 @@ const Navbar = () => {
             </li>
           </ul>
           <div className="d-flex align-items-center">
+            <NotificationDropdown />
             {user && (
               <>
                 <img
@@ -58,7 +62,7 @@ const Navbar = () => {
                   height="40"
                   style={{ marginRight: "10px" }}
                 />
-                <span className="me-3">Welcome</span>
+                <span className="me-3">Welcome, {user}</span>
                 <div>
                   <button className="btn btn-danger" onClick={handleLogout}>
                     Logout
