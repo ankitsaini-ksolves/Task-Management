@@ -17,6 +17,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    profileImage: {
+      type: String,
+      default: null,
+    },
     friends: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -31,6 +35,12 @@ const UserSchema = new mongoose.Schema(
           enum: ["pending", "accepted", "rejected"],
           default: "pending",
         },
+      },
+    ],
+    sentFriendRequests: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
       },
     ],
   },

@@ -4,9 +4,11 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const { createServer } = require("http");
 require("dotenv").config();
+const path = require("path");
 const userRoutes = require("./router/user");
 const taskRoutes = require("./router/taskRoutes");
 const friendRoutes = require("./router/friendRoutes");
+const chatRoutes = require("./router/chatRoutes");
 
 const app = express();
 const PORT = process.env.PORT;
@@ -16,7 +18,6 @@ const io = new Server(server, {
     origin: "http://localhost:3000",
   },
 });
-
 
 // Middleware
 app.use(cors());
@@ -29,12 +30,16 @@ mongoose
   .then(() => console.log("Connected to MongoDB Atlas"))
   .catch((err) => console.error("Error connecting to MongoDB:", err));
 
-
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("send-friend-request", ({ toUserId }) => {
-    io.to(toUserId).emit("friend-request-received");
+  socket.on("join-room", (chatRoomId) => {
+    socket.join(chatRoomId);
+    console.log(`User joined room: ${chatRoomId}`);
+  });
+
+  socket.on("send-message", ({ chatRoomId, message }) => {
+    io.to(chatRoomId).emit("receive-message", message);
   });
 
   socket.on("disconnect", () => {
@@ -42,12 +47,13 @@ io.on("connection", (socket) => {
   });
 });
 
+app.use("/uploads", express.static("uploads"));
 
 // Routes
 app.use("/api", userRoutes);
 app.use("/", taskRoutes);
 app.use("/user", friendRoutes);
-
+app.use("/chat", chatRoutes);
 
 server.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)

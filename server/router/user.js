@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const multer = require("multer");
+
 
 router.post("/signup", async (req, res) => {
   const { username, email, password } = req.body;
@@ -46,9 +48,50 @@ router.post("/login", async (req, res) => {
     res.status(200).json({
       username: user.username,
       userId: user._id,
+      profileImage: user.profileImage,
     });
   } catch (err) {
     res.status(500).json({ message: "Error logging in", error: err.message });
+  }
+});
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const upload = multer({ storage });
+
+router.put("/update", upload.single("profileImage"), async (req, res) => {
+  console.log("Inside Update")
+  try {
+    const { username, userId } = req.body;
+    console.log(username);
+        console.log(userId);
+
+    const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
+
+    const updates = {};
+    if (username) updates.username = username;
+    if (profileImage) updates.profileImage = profileImage;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+
+    res.json({ message: "Profile updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 

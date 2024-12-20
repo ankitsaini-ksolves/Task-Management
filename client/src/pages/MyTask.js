@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import TaskForm from "../components/TaskForm";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 const MyTask = () => {
   const userId = useSelector((state) => state.auth.userId);
@@ -58,28 +59,31 @@ const MyTask = () => {
     setExpandedDate(expandedDate === date ? null : date);
   };
 
-const handleDelete = async (taskId) => {
-  try {
-    const response = await fetch(`http://localhost:5000/tasks/${taskId}`, {
-      method: "DELETE",
-    });
+  const handleDelete = async (taskId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/tasks/${taskId}`, {
+        method: "DELETE",
+      });
 
-    if (!response.ok) {
-      throw new Error("Failed to delete the task");
+      if (!response.ok) {
+        throw new Error("Failed to delete the task");
+      }
+
+      setTasks((prev) => {
+        const updatedTasks = { ...prev };
+        updatedTasks[expandedDate] = updatedTasks[expandedDate].filter(
+          (t) => t._id !== taskId
+        );
+        toast.error("Task deleted Successfully", {
+          autoClose: 2000,
+        });
+
+        return updatedTasks;
+      });
+    } catch (error) {
+      console.error("Error deleting task:", error.message);
     }
-
-    setTasks((prev) => {
-      const updatedTasks = { ...prev };
-      updatedTasks[expandedDate] = updatedTasks[expandedDate].filter(
-        (t) => t._id !== taskId
-      );
-      return updatedTasks;
-    });
-  } catch (error) {
-    console.error("Error deleting task:", error.message);
-  }
-};
-
+  };
 
   const handleTaskChange = (index, field, value) => {
     const updatedTasks = [...newTasks];
@@ -160,6 +164,7 @@ const handleDelete = async (taskId) => {
       }));
       resetModal();
       setShowModal(false);
+      toast.success("Task added Successfully", { autoClose: 2000 });
     } catch (error) {
       console.error("Error saving tasks:", error.message);
     }
@@ -188,7 +193,6 @@ const handleDelete = async (taskId) => {
     const formattedHours = hours % 12 || 12; // Convert 0 to 12 for 12 AM
     return `${formattedHours}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
-
 
   return (
     <div className="container my-4">
