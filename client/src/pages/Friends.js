@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useSelector } from "react-redux";
 import Friends from "../components/Friends";
 import ChatBody from "../components/ChatBody";
@@ -7,25 +7,19 @@ import Users from "../components/Users";
 import "../Friends.css";
 
 const FriendsPage = () => {
-
-  const userId = useSelector((state) => state.auth.userId); // Logged-in user
-  const [selectedFriend, setSelectedFriend] = useState(null); // Track selected friend
-
-  const chatRoomId = selectedFriend
-    ? [userId, selectedFriend._id].sort().join("_")
-    : null;
+    const selectedFriend = useSelector((state) => state.chat.selectedFriend);
 
   return (
     <div className="container-fluid">
       <div className="row justify-content-center">
         <div className="col-md-3 d-flex flex-column align-items-center p-3 friends bg-white scrollable">
-          <Friends onSelectFriend={(friend) => setSelectedFriend(friend)} />
+          <Friends />
         </div>
         <div className="col-md-6 d-flex flex-column chat_main bg-white mt-2">
           {selectedFriend ? (
             <>
-              <ChatBody chatRoomId={chatRoomId} friend={selectedFriend} />
-              <ChatFooter chatRoomId={chatRoomId} />
+              <ChatBody />
+              <ChatFooter />
             </>
           ) : (
             <p className="text-center mt-3">

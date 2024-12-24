@@ -132,16 +132,24 @@ router.put("/tasks/:userId/:taskId", async (req, res) => {
     );
 
     if (!updatedTask) {
+      console.error(
+        "Task not found for UserID:",
+        userId,
+        "and TaskID:",
+        taskId
+      );
       return res.status(404).json({ error: "Task not found" });
     }
 
     res.status(200).json(updatedTask);
   } catch (err) {
+    console.error("Error updating task:", err.message);
     res
       .status(500)
       .json({ error: "Failed to update task status", message: err.message });
   }
 });
+
 
 
 

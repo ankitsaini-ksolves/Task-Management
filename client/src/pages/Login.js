@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/authSlice";
+import { toast } from "react-toastify";
 import "../App.css";
-
+const API_URL = process.env.REACT_APP_BASE_URL;
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/api/login", {
+      const response = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -26,6 +27,7 @@ const Login = () => {
         const data = await response.json();
         dispatch(login({ user: data }));
         navigate("/");
+        toast.success("Logged In Successfully", { autoClose: 2000 });
       } else {
         const data = await response.json();
         setError(data.error || "Invalid Credantials");
@@ -81,7 +83,9 @@ const Login = () => {
                 required
               />
             </div>
-            {error && ( <div className="alert alert-danger p-2 mb-2">{error}</div> )}
+            {error && (
+              <div className="alert alert-danger p-2 mb-2">{error}</div>
+            )}
             <button type="submit" className="btn btn-primary w-100">
               Login
             </button>

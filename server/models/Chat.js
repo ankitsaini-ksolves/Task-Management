@@ -1,10 +1,9 @@
 const mongoose = require("mongoose");
 
-// Messages
 const MessageSchema = new mongoose.Schema(
   {
     chatRoomId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "ChatRoom",
       required: true,
     },
@@ -21,9 +20,13 @@ const MessageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Chat Room
 const ChatRoomSchema = new mongoose.Schema(
   {
+    chatRoomId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     users: [
       {
         type: mongoose.Schema.Types.ObjectId,

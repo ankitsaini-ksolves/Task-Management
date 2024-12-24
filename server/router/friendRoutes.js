@@ -73,9 +73,11 @@ router.post("/friend-request", async (req, res) => {
     await fromUser.save();
 
     toUser.friendRequests.push({ from: fromUserId, status: "pending" });
-    await toUser.save();
+     const result= await toUser.save();
 
-    res.status(200).json({ message: "Friend request sent successfully" });
+    res
+      .status(200)
+      .json({ message: "Friend request sent successfully", result });
   } catch (err) {
     res
       .status(500)
@@ -86,7 +88,6 @@ router.post("/friend-request", async (req, res) => {
 // Accept or reject friend request
 router.put("/friend-request", async (req, res) => {
   const { userId, requestId, action } = req.body;
-
   try {
     const user = await User.findById(userId);
 
@@ -158,7 +159,7 @@ router.get("/all-friends/:userId", async (req, res) => {
   try {
     const user = await User.findById(userId).populate(
       "friends",
-      "username email"
+      "username email profileImage"
     );
 
     if (!user) {

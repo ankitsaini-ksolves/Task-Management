@@ -1,10 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+const API_URL = process.env.REACT_APP_BASE_URL;
+
 
 export const fetchTasks = createAsyncThunk(
   "tasks/fetchTasks",
   async (userId) => {
     const response = await fetch(
-      `http://localhost:5000/today?userId=${userId}`
+      `${API_URL}/today?userId=${userId}`
     );
     const data = await response.json();
     return data;
@@ -14,16 +16,13 @@ export const fetchTasks = createAsyncThunk(
 export const updateTaskStatus = createAsyncThunk(
   "tasks/updateTaskStatus",
   async ({ userId, taskId, status }) => {
-    const response = await fetch(
-      `http://localhost:5000/tasks/${userId}/${taskId}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      }
-    );
+    const response = await fetch(`${API_URL}/tasks/${userId}/${taskId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
     const data = await response.json();
-    return { taskId, status }; // Only return taskId and status
+    return { taskId, status };
   }
 );
 
@@ -34,8 +33,12 @@ const taskSlice = createSlice({
     status: "idle",
     error: null,
   },
-  
-  reducers: {},
+
+  reducers: {
+    addTask: (state, action) => {
+      state.tasks = action.payload
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchTasks.pending, (state) => {
@@ -50,19 +53,22 @@ const taskSlice = createSlice({
         state.error = action.error.message;
       })
       .addCase(updateTaskStatus.fulfilled, (state, action) => {
-        state.status = "succeeded";
-
         const { taskId, status } = action.payload;
 
-        for (const taskList of state.tasks) {
-          const task = taskList.tasks.find((task) => task._id === taskId);
-          if (task) {
-            task.status = status;
-            break;
-          }
+        if (!state.tasks || !Array.isArray(state.tasks)) {
+          console.error("State tasks are undefined or not an array");
+          return;
         }
+
+        state.tasks = state.tasks.map((task) =>
+          task._id === taskId ? { ...task, status } : task
+        );
+
       });
   },
 });
+
+export const { addTask } = taskSlice.actions;
+
 
 export default taskSlice.reducer;

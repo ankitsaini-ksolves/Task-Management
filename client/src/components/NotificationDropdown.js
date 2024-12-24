@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import socket from "../socket";
+const API_URL = process.env.REACT_APP_BASE_URL;
+
 
 const NotificationDropdown = () => {
   const userId = useSelector((state) => state.auth.userId);
@@ -8,15 +11,26 @@ const NotificationDropdown = () => {
 
   useEffect(() => {
     // Fetch friend requests
-    fetch(`http://localhost:5000/user/friend-requests/${userId}`)
+    socket.emit("joinNotifications", userId);
+
+    // Fetch friend requests on initial load
+    fetch(`${API_URL}/user/friend-requests/${userId}`)
       .then((res) => res.json())
       .then((data) => {
         setRequests(data);
       });
+
+    // Listen for real-time friend requests
+    socket.on("receiveFriendRequest", (newRequest) => {
+      setRequests((prevRequests) => [...prevRequests, newRequest]);
+    });
+     return () => {
+       socket.off("receiveFriendRequest");
+     };
   }, [userId]);
 
   const handleRequest = (requestId, action) => {
-    fetch("http://localhost:5000/user/friend-request", {
+    fetch(`${API_URL}/user/friend-request`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, requestId, action }),

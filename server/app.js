@@ -4,7 +4,6 @@ const cors = require("cors");
 const { Server } = require("socket.io");
 const { createServer } = require("http");
 require("dotenv").config();
-const path = require("path");
 const userRoutes = require("./router/user");
 const taskRoutes = require("./router/taskRoutes");
 const friendRoutes = require("./router/friendRoutes");
@@ -33,19 +32,37 @@ mongoose
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.on("join-room", (chatRoomId) => {
+    socket.on("joinNotifications", (userId) => {
+      socket.join(`user_${userId}`);
+      console.log(`User joined notifications room: user_${userId}`);
+    });
+
+    // Handle sending a friend request
+    socket.on("sendFriendRequest", ({ from, toUserId, _id }) => {
+      console.log(
+        `Friend request sent from ${from.username} to user: ${toUserId} Request id: ${_id}`
+      );
+      io.to(`user_${toUserId}`).emit("receiveFriendRequest", {
+        from,
+        _id,
+      });
+    });
+
+  socket.on("joinRoom", (chatRoomId) => {
     socket.join(chatRoomId);
     console.log(`User joined room: ${chatRoomId}`);
   });
 
-  socket.on("send-message", ({ chatRoomId, message }) => {
-    io.to(chatRoomId).emit("receive-message", message);
-  });
+    socket.on("sendMessage", (message) => {
+      console.log(`Message sent to room: ${message.chatRoomId}`);
+      io.to(message.chatRoomId).emit("receiveMessage", message);
+    });
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
+
 
 app.use("/uploads", express.static("uploads"));
 

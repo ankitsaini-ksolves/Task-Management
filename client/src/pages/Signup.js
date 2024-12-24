@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "../App.css";
-
+import { toast } from "react-toastify";
+const API_URL = process.env.REACT_APP_BASE_URL;
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const Signup = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/api/signup", {
+      const response = await fetch(`${API_URL}/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password }),
@@ -22,6 +23,7 @@ const Signup = () => {
 
       if (response.ok) {
         navigate("/login");
+        toast.success("User Created Successfully", { autoClose: 2000 });
       } else {
         const data = await response.json();
         setError(data.error);
@@ -91,7 +93,9 @@ const Signup = () => {
                   required
                 />
               </div>
-              {error && <div className="alert alert-danger p-2 mb-2">{error}</div>}
+              {error && (
+                <div className="alert alert-danger p-2 mb-2">{error}</div>
+              )}
               <button type="submit" className="btn btn-primary w-100">
                 Sign Up
               </button>

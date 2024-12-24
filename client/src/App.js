@@ -8,6 +8,7 @@ import Navbar from "./components/Navbar";
 import MyTask from "./pages/MyTask";
 import Friends from "./pages/Friends";
 
+
 function App() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 

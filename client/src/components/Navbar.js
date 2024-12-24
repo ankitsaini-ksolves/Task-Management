@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { logout } from "../redux/authSlice";
+import { logout, updateUser } from "../redux/authSlice";
 import { toast } from "react-toastify";
 import "../App.css";
 
 import NotificationDropdown from "./NotificationDropdown";
 import Modal from "./Modal";
+const API_URL = process.env.REACT_APP_BASE_URL;
+
 
 const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
@@ -39,20 +41,17 @@ const Navbar = () => {
   const handleSaveChanges = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-
-    const updatedUser = {
-      username: formData.get("username"),
-      profileImage: formData.get("profileImage"),
-    };
     formData.append("userId", userId);
 
     try {
-      const response = await fetch("http://localhost:5000/api/update", {
+      const response = await fetch(`${API_URL}/api/update`, {
         method: "PUT",
         body: formData,
       });
 
       if (!response.ok) throw new Error("Failed to update profile");
+      const updatedUserData = await response.json();
+      dispatch(updateUser(updatedUserData.user));
       toast.success("Profile updated successfully!", { autoClose: 2000 });
 
       closeEditModal();
@@ -98,23 +97,28 @@ const Navbar = () => {
               </Link>
             </li>
           </ul>
-          <p>{User.profileImage}</p>
           <div className="d-flex align-items-center">
             <NotificationDropdown />
             {user && (
               <div className="dropdown">
-                <img
-                  src={User.profileImage || "/logo192.png"}
-                  alt="User Icon"
-                  className="rounded-circle m-2"
-                  width="40"
-                  height="40"
-                  style={{ cursor: "pointer" }}
-                  onClick={toggleDropdown}
-                />
+                <div className="d-flex align-items-center">
+                  <img
+                    src={
+                      User.profileImage
+                        ? `${API_URL}${User.profileImage}`
+                        : "/logo192.png"
+                    }
+                    alt="User Icon"
+                    className="rounded-circle m-2 "
+                    width="40"
+                    height="40"
+                    style={{ cursor: "pointer" }}
+                    onClick={toggleDropdown}
+                  />
+                  <p className="mb-0 ms-2 text-dark">Welcome, {user}</p>
+                </div>
                 {showDropdown && (
                   <div className="dropdown-menu dropdown-menu-end show dropdown">
-                    <p className="text-center text-old">{user}</p>
                     <button className="dropdown-item" onClick={openEditModal}>
                       Edit Profile
                     </button>

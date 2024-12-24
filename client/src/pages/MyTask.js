@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import TaskForm from "../components/TaskForm";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { addTask } from "../redux/taskSlice";
+const API_URL = process.env.REACT_APP_BASE_URL;
 
 const MyTask = () => {
   const userId = useSelector((state) => state.auth.userId);
+  const dispatch = useDispatch();
 
   const [dates, setDates] = useState([]);
   const [tasks, setTasks] = useState({});
@@ -24,12 +27,9 @@ const MyTask = () => {
 
   async function fetchTaskDates() {
     try {
-      const response = await fetch(
-        `http://localhost:5000/tasks/dates/${userId}`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await fetch(`${API_URL}/tasks/dates/${userId}`, {
+        method: "GET",
+      });
 
       const data = await response.json();
       setDates(data || []);
@@ -41,12 +41,9 @@ const MyTask = () => {
   const handleExpand = async (date) => {
     if (!tasks[date]) {
       try {
-        const response = await fetch(
-          `http://localhost:5000/tasks/${userId}/${date}`,
-          {
-            method: "GET",
-          }
-        );
+        const response = await fetch(`${API_URL}/tasks/${userId}/${date}`, {
+          method: "GET",
+        });
 
         const data = await response.json();
         const tasksForDate = data?.tasks || [];
@@ -61,7 +58,7 @@ const MyTask = () => {
 
   const handleDelete = async (taskId) => {
     try {
-      const response = await fetch(`http://localhost:5000/tasks/${taskId}`, {
+      const response = await fetch(`${API_URL}/tasks/${taskId}`, {
         method: "DELETE",
       });
 
@@ -141,10 +138,13 @@ const MyTask = () => {
   };
 
   const handleSaveTasks = async () => {
-    if (!selectedDate || !newTasks.length) return;
+    if (!selectedDate || !newTasks.length) {
+      toast.error("Please select the date", { autoClose: 2000 });
+      return;
+    }
 
     try {
-      const response = await fetch("http://localhost:5000/tasks", {
+      const response = await fetch(`${API_URL}/tasks`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -162,6 +162,11 @@ const MyTask = () => {
         ...prev,
         [selectedDate]: result.tasks,
       }));
+
+      const today = new Date().toISOString().split("T")[0];
+      if (selectedDate === today) {
+        dispatch(addTask(result.tasks));
+      }
       resetModal();
       setShowModal(false);
       toast.success("Task added Successfully", { autoClose: 2000 });
@@ -205,7 +210,7 @@ const MyTask = () => {
       </button>
       <div className="accordion" id="taskAccordion">
         {dates.map((date, index) => (
-          <div className="accordion-item" key={index}>
+          <div className="accordion-item mb-2" key={index}>
             <h2 className="accordion-header">
               <button
                 className="accordion-button"

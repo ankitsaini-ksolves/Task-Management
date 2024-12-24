@@ -13,7 +13,7 @@ const Dashboard = () => {
     if (status === "idle") {
       dispatch(fetchTasks(userId));
     }
-  }, [dispatch, status]);
+  }, [dispatch, status, tasks]);
 
   const handleStatusChange = (taskId, currentStatus) => {
     const newStatus =

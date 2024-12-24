@@ -1,19 +1,39 @@
 import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { setSelectedFriend, setChatRoom, fetchMessages} from "../redux/chatSlice"
+const API_URL = process.env.REACT_APP_BASE_URL;
 
-
-const Friends = ({ onSelectFriend }) => {
+const Friends = () => {
+  const dispatch = useDispatch();
   const userId = useSelector((state) => state.auth.userId);
   const [friends, setFriends] = useState([]);
-    const [selectedFriend, setSelectedFriend] = useState([]);
+  console.log(friends)
+
+
+  const onSelectFriend = (friendId) => {
+    if (friendId) {
+      fetch(`${API_URL}/chat/chat-room`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user1: userId, user2: friendId }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          dispatch(setChatRoom(data.chatRoomId));
+        });
+
+      dispatch(setSelectedFriend(friendId));
+      dispatch(fetchMessages(friendId));
+    }
+  };
 
   useEffect(() => {
     const fetchFriends = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5000/user/all-friends/${userId}`
-        );
+        const response = await fetch(`${API_URL}/user/all-friends/${userId}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -28,15 +48,15 @@ const Friends = ({ onSelectFriend }) => {
   }, [userId]);
 
   const handleDeleteFriend = (friendId) => {
-    fetch(`http://localhost:5000/user/${friendId}`, {
+    fetch(`${API_URL}/user/${friendId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId }),
     })
       .then((response) => response.json())
       .then((updatedFriends) => {
-                toast.error("Friend Deleted", { autoClose: 2000 });
-        
+        toast.error("Friend Deleted", { autoClose: 2000 });
+
         setFriends(updatedFriends);
       })
       .catch((error) => console.error("Error deleting friend:", error));
@@ -48,14 +68,17 @@ const Friends = ({ onSelectFriend }) => {
       <ul className="list-group w-100">
         {friends.length > 0 ? (
           friends.map((friend) => (
-            <div className="list-item">
+            <div className="list-item" key={friend._id}>
               <li
-                key={friend._id}
                 className="d-flex align-items-center mb-2 mt-2"
-                onClick={() => onSelectFriend(friend)}
+                onClick={() => onSelectFriend(friend._id)}
               >
                 <img
-                  src="/logo192.png"
+                  src={
+                    friend.profileImage
+                      ? `${API_URL}${friend.profileImage}`
+                      : "/logo192.png"
+                  }
                   alt={friend.username}
                   className="rounded-circle me-3"
                   width="40"

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { ChatRoom, Message } = require("../models/Chat");
 
+// Create or fetch a chat room
 router.post("/chat-room", async (req, res) => {
   const { user1, user2 } = req.body;
 
@@ -11,35 +12,42 @@ router.post("/chat-room", async (req, res) => {
     });
 
     if (!chatRoom) {
-      chatRoom = new ChatRoom({ users: [user1, user2] });
+      const chatRoomId = `${user1}_${user2}`;
+
+      chatRoom = new ChatRoom({
+        chatRoomId,
+        users: [user1, user2],
+      });
+
       await chatRoom.save();
     }
-
     res.status(200).json(chatRoom);
   } catch (err) {
+    console.error("Error creating chat room:", err);
     res.status(500).json({ error: "Error creating chat room" });
   }
 });
 
+// Save a new message
 router.post("/messages", async (req, res) => {
   const { chatRoomId, sender, content } = req.body;
 
   try {
-    const senderExists = await User.findById(sender);
-    if (!senderExists) {
-      return res.status(400).json({ error: "Invalid sender ID" });
-    }
-
+    // Create and save the message
     const message = new Message({ chatRoomId, sender, content });
     await message.save();
-    res.status(201).json(message);
+
+    const populatedMessage = await message.populate("sender", "username");
+    res.status(201).json(populatedMessage);
   } catch (err) {
-    res.status(500).json({ error: "Error sending message" });
+    console.error("Error details:", err); // Log the actual error
+    res.status(500).json({ error: "Error saving message" });
   }
 });
 
+
+// Fetch messages for a chat room
 router.get("/messages/:chatRoomId", async (req, res) => {
-  console.log("INside")
   const { chatRoomId } = req.params;
 
   try {
@@ -49,6 +57,7 @@ router.get("/messages/:chatRoomId", async (req, res) => {
     );
     res.status(200).json(messages);
   } catch (err) {
+    console.error("Error fetching messages:", err);
     res.status(500).json({ error: "Error fetching messages" });
   }
 });

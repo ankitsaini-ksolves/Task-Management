@@ -1,25 +1,46 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addMessage, fetchMessages, sendMessage } from "../redux/chatSlice";
+
 import socket from "../socket";
+const API_URL = process.env.REACT_APP_BASE_URL;
 
-const ChatFooter = ({ chatRoomId }) => {
-  const [message, setMessage] = useState([]);
-  const userId = useSelector((state) => state.auth.userId);
 
-  const sendMessage = () => {
-    if (message.trim() && chatRoomId) {
-      const newMessage = { chatRoomId, sender: userId, content: message };
+const ChatFooter = () => {
+   const dispatch = useDispatch();
+   const chatRoomId = useSelector((state) => state.chat.chatRoomId);
+     const userId = useSelector((state) => state.auth.userId);
+       const user = useSelector((state) => state.auth.user);
+     
 
-      // Emit to server
-      socket.emit("send-message", newMessage);
+   const [message, setMessage] = useState("");
 
-      setMessage((prev) =>
-        Array.isArray(prev) ? [...prev, newMessage] : [newMessage]
-      );
+   useEffect(() => {
+     if (chatRoomId) {
+       socket.emit("joinRoom", chatRoomId);
+       dispatch(fetchMessages(chatRoomId));
 
-      setMessage("");
-    }
-  };
+       socket.on("receiveMessage", (newMessage) => {
+         dispatch(addMessage(newMessage));
+       });
+
+       return () => {
+         socket.off("receiveMessage");
+       };
+     }
+   }, [chatRoomId, dispatch]);
+
+   const handleSendMessage = () => {
+     if (message.trim() === "") return;
+
+     const newMessage = { chatRoomId, sender: userId, content: message, senderName: user };
+
+     dispatch(sendMessage(newMessage));
+
+     socket.emit("sendMessage", newMessage);
+     setMessage("");
+   };
+
 
 
   return (
@@ -31,7 +52,7 @@ const ChatFooter = ({ chatRoomId }) => {
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Type a message..."
       />
-      <button className="btn btn-primary" onClick={sendMessage}>
+      <button className="btn btn-primary" onClick={handleSendMessage}>
         Send
       </button>
     </div>

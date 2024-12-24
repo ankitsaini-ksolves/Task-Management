@@ -68,11 +68,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.put("/update", upload.single("profileImage"), async (req, res) => {
-  console.log("Inside Update")
   try {
     const { username, userId } = req.body;
-    console.log(username);
-        console.log(userId);
 
     const profileImage = req.file ? `/uploads/${req.file.filename}` : null;
 
