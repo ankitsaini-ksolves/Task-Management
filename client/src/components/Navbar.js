@@ -12,8 +12,6 @@ const API_URL = process.env.REACT_APP_BASE_URL;
 
 const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
-  const User = useSelector((state) => state.auth.User);
-  const userId = useSelector((state) => state.auth.userId);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -41,7 +39,7 @@ const Navbar = () => {
   const handleSaveChanges = async (event) => {
     event.preventDefault();
     const formData = new FormData(event.target);
-    formData.append("userId", userId);
+    formData.append("userId", user.userId);
 
     try {
       const response = await fetch(`${API_URL}/api/update`, {
@@ -104,8 +102,8 @@ const Navbar = () => {
                 <div className="d-flex align-items-center">
                   <img
                     src={
-                      User.profileImage
-                        ? `${API_URL}${User.profileImage}`
+                      user.profileImage
+                        ? `${API_URL}${user.profileImage}`
                         : "/logo192.png"
                     }
                     alt="User Icon"
@@ -115,7 +113,9 @@ const Navbar = () => {
                     style={{ cursor: "pointer" }}
                     onClick={toggleDropdown}
                   />
-                  <p className="mb-0 ms-2 text-dark">Welcome, {user}</p>
+                  <p className="mb-0 ms-2 text-dark">
+                    Welcome, {user.username}
+                  </p>
                 </div>
                 {showDropdown && (
                   <div className="dropdown-menu dropdown-menu-end show dropdown">

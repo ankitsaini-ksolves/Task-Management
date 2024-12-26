@@ -4,20 +4,19 @@ const Task = require("../models/Task");
 const moment = require("moment");
 
 router.get("/today", async (req, res) => {
-const userId = req.query.userId;
-const today = moment().format("YYYY-MM-DD");
+  const userId = req.query.userId;
+  const today = moment().format("YYYY-MM-DD");
 
-try {
-  const taskDoc = await Task.findOne({ userId, date: today });
-  const tasks = taskDoc ? taskDoc.tasks : [];
-  res.status(200).json(tasks);
-} catch (error) {
-  res
-    .status(500)
-    .json({ error: "Failed to fetch today's tasks", message: error.message });
-}
+  try {
+    const taskDoc = await Task.findOne({ userId, date: today });
+    const tasks = taskDoc ? taskDoc.tasks : [];
+    res.status(200).json(tasks);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch today's tasks", message: error.message });
+  }
 });
-
 
 router.get("/tasks/dates/:userId", async (req, res) => {
   try {
@@ -69,8 +68,6 @@ router.delete("/tasks/:taskId", async (req, res) => {
   }
 });
 
-
-
 // Add or update tasks for a specific date
 router.post("/tasks", async (req, res) => {
   const { userId, date, tasks } = req.body;
@@ -84,6 +81,7 @@ router.post("/tasks", async (req, res) => {
           .json({ error: `Invalid time range for task: ${task.title}` });
       }
     }
+
     const existingTasks = await Task.findOne({ userId, date });
 
     // Validate overlapping times
@@ -100,7 +98,8 @@ router.post("/tasks", async (req, res) => {
             (newStart <= existingStart && newEnd >= existingEnd)
           ) {
             return res.status(400).json({
-              error: `Time overlaps with an existing task: ${existingTask.title}`,
+              error: `Time overlaps with another task`,
+              taskIndex: tasks.indexOf(newTask),
             });
           }
         }
@@ -117,6 +116,65 @@ router.post("/tasks", async (req, res) => {
     res
       .status(500)
       .json({ error: "Failed to add tasks", message: err.message });
+  }
+});
+
+router.put("/tasks/:id", async (req, res) => {
+  const { id } = req.params; // Task ID to edit
+  const { userId, date, title, description, startTime, endTime } = req.body;
+
+  try {
+    if (startTime >= endTime) {
+      return res
+        .status(400)
+        .json({ error: "Invalid time range for the task." });
+    }
+
+    // Fetch existing tasks for the user and date
+    const existingTasks = await Task.findOne({ userId, date });
+
+    if (existingTasks) {
+      for (const task of existingTasks.tasks) {
+        if (task._id.toString() !== id) {
+          // Exclude the current task being edited
+          const { startTime: existingStart, endTime: existingEnd } = task;
+
+          if (
+            (startTime >= existingStart && startTime < existingEnd) ||
+            (endTime > existingStart && endTime <= existingEnd) ||
+            (startTime <= existingStart && endTime >= existingEnd)
+          ) {
+            return res.status(400).json({
+              error: `Time overlaps with another task: ${task.title}`,
+            });
+          }
+        }
+      }
+    }
+
+    // Update the task
+    const updatedTask = await Task.findOneAndUpdate(
+      { userId, "tasks._id": id },
+      {
+        $set: {
+          "tasks.$.title": title,
+          "tasks.$.description": description,
+          "tasks.$.startTime": startTime,
+          "tasks.$.endTime": endTime,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedTask) {
+      return res.status(404).json({ error: "Task not found." });
+    }
+
+    res.status(200).json({ tasks: updatedTask.tasks, date });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "Failed to edit task", message: err.message });
   }
 });
 
@@ -149,8 +207,5 @@ router.put("/tasks/:userId/:taskId", async (req, res) => {
       .json({ error: "Failed to update task status", message: err.message });
   }
 });
-
-
-
 
 module.exports = router;

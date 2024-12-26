@@ -3,10 +3,12 @@ import TaskForm from "../components/TaskForm";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { addTask } from "../redux/taskSlice";
+import Modal from "../components/Modal";
+
 const API_URL = process.env.REACT_APP_BASE_URL;
 
 const MyTask = () => {
-  const userId = useSelector((state) => state.auth.userId);
+  const userId = useSelector((state) => state.auth.user.userId);
   const dispatch = useDispatch();
 
   const [dates, setDates] = useState([]);
@@ -18,6 +20,8 @@ const MyTask = () => {
     { title: "", description: "", time: "" },
   ]);
   const [validationMessages, setValidationMessages] = useState([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState(null);
 
   useEffect(() => {
     if (userId) {
@@ -37,6 +41,11 @@ const MyTask = () => {
       console.error("Failed to fetch task dates:", error);
     }
   }
+
+  const openEditModal = (task) => {
+    setTaskToEdit(task);
+    setIsEditModalOpen(true);
+  };
 
   const handleExpand = async (date) => {
     if (!tasks[date]) {
@@ -81,6 +90,43 @@ const MyTask = () => {
       console.error("Error deleting task:", error.message);
     }
   };
+
+const handleEditTask = async () => {
+  try {
+    const response = await fetch(`${API_URL}/tasks/${taskToEdit._id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        date: selectedDate,
+        ...taskToEdit,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      if (errorData.error) {
+        toast.error(errorData.error, { autoClose: 2000 });
+        return;
+      }
+    }
+
+    const { tasks: updatedTasks, date } = await response.json();
+
+    // Use the date from the response to update the tasks state
+    setTasks((prev) => ({
+      ...prev,
+      [date]: updatedTasks,
+    }));
+
+    setIsEditModalOpen(false);
+    toast.success("Task updated successfully", { autoClose: 2000 });
+  } catch (error) {
+    console.error("Error editing task:", error.message);
+    toast.error("Failed to update task", { autoClose: 2000 });
+  }
+};
+
 
   const handleTaskChange = (index, field, value) => {
     const updatedTasks = [...newTasks];
@@ -154,7 +200,23 @@ const MyTask = () => {
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to save tasks");
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.error && errorData.taskIndex !== undefined) {
+          const updatedMessages = [...validationMessages];
+          const index = errorData.taskIndex;
+
+          if (!updatedMessages[index]) {
+            updatedMessages[index] = {};
+          }
+
+          updatedMessages[index].startTime = errorData.error;
+          updatedMessages[index].endTime = errorData.error;
+
+          setValidationMessages(updatedMessages);
+        }
+        return;
+      }
 
       const result = await response.json();
       setDates((prev) => [...new Set([...prev, selectedDate])]);
@@ -248,7 +310,12 @@ const MyTask = () => {
                       >
                         Delete
                       </button>
-                      <button className="btn btn-secondary btn-sm">Edit</button>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => openEditModal(task)}
+                      >
+                        Edit
+                      </button>
                       {/* <button
                         className="btn btn-link"
                         data-bs-toggle="collapse"
@@ -323,6 +390,69 @@ const MyTask = () => {
             </div>
           </div>
         </div>
+      )}
+      {isEditModalOpen && (
+        <Modal onClose={() => setIsEditModalOpen(false)}>
+          <h3>Edit Task</h3>
+          <div className="form-group">
+            <label>Title</label>
+            <input
+              type="text"
+              className="form-control"
+              value={taskToEdit.title}
+              onChange={(e) =>
+                setTaskToEdit((prev) => ({ ...prev, title: e.target.value }))
+              }
+            />
+          </div>
+          <div className="form-group">
+            <label>Description</label>
+            <textarea
+              className="form-control"
+              rows="3"
+              value={taskToEdit.description}
+              onChange={(e) =>
+                setTaskToEdit((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="row">
+            <div className="col">
+              <label>Start Time</label>
+              <input
+                type="time"
+                className="form-control"
+                value={taskToEdit.startTime}
+                onChange={(e) =>
+                  setTaskToEdit((prev) => ({
+                    ...prev,
+                    startTime: e.target.value,
+                  }))
+                }
+              />
+            </div>
+            <div className="col">
+              <label>End Time</label>
+              <input
+                type="time"
+                className="form-control"
+                value={taskToEdit.endTime}
+                onChange={(e) =>
+                  setTaskToEdit((prev) => ({
+                    ...prev,
+                    endTime: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
+          <button className="btn btn-primary mt-3" onClick={handleEditTask}>
+            Save
+          </button>
+        </Modal>
       )}
     </div>
   );

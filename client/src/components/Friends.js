@@ -6,9 +6,15 @@ const API_URL = process.env.REACT_APP_BASE_URL;
 
 const Friends = () => {
   const dispatch = useDispatch();
-  const userId = useSelector((state) => state.auth.userId);
+  const userId = useSelector((state) => state.auth.user.userId);
   const [friends, setFriends] = useState([]);
-  console.log(friends)
+
+
+    useEffect(() => {
+      return () => {
+        dispatch(setSelectedFriend(null));
+      };
+    }, [dispatch]);
 
 
   const onSelectFriend = (friendId) => {

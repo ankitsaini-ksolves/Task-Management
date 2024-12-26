@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/authSlice";
 import { toast } from "react-toastify";
+import { jwtDecode } from "jwt-decode";
 import "../App.css";
 const API_URL = process.env.REACT_APP_BASE_URL;
 
@@ -13,29 +14,35 @@ const Login = () => {
   const [error, setError] = useState("");
   const dispatch = useDispatch();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const response = await fetch(`${API_URL}/api/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+  try {
+    const response = await fetch(`${API_URL}/api/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        dispatch(login({ user: data }));
-        navigate("/");
-        toast.success("Logged In Successfully", { autoClose: 2000 });
-      } else {
-        const data = await response.json();
-        setError(data.error || "Invalid Credantials");
-      }
-    } catch (error) {
-      setError("An error occurred. Please try again.");
+    if (response.ok) {
+      const { token } = await response.json();
+      const decoded = jwtDecode(token);
+
+      dispatch(login({ user: decoded }));
+
+      localStorage.setItem("token", token);
+
+      navigate("/");
+      toast.success("Logged In Successfully", { autoClose: 2000 });
+    } else {
+      const data = await response.json();
+      setError(data.message || "Invalid Credentials");
     }
-  };
+  } catch (error) {
+    setError("An error occurred. Please try again.");
+  }
+};
+
 
   return (
     <div className="d-flex justify-content-center align-items-center vh-100">

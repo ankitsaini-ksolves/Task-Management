@@ -6,7 +6,7 @@ const API_URL = process.env.REACT_APP_BASE_URL;
 
 
 const NotificationDropdown = () => {
-  const userId = useSelector((state) => state.auth.userId);
+  const userId = useSelector((state) => state.auth.user.userId);
   const [requests, setRequests] = useState([]);
 
   useEffect(() => {

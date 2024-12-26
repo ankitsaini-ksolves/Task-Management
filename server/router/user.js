@@ -3,6 +3,8 @@ const router = express.Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
+const jwt = require("jsonwebtoken");
+
 
 
 router.post("/signup", async (req, res) => {
@@ -45,11 +47,18 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid password" });
     }
 
-    res.status(200).json({
-      username: user.username,
-      userId: user._id,
-      profileImage: user.profileImage,
-    });
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        username: user.username,
+        profileImage: user.profileImage,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    res.status(200).json({ token });
   } catch (err) {
     res.status(500).json({ message: "Error logging in", error: err.message });
   }

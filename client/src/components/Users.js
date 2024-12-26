@@ -6,7 +6,6 @@ import socket from "../socket";
 const API_URL = process.env.REACT_APP_BASE_URL;
 
 const Users = () => {
-  const userId = useSelector((state) => state.auth.userId);
     const user = useSelector((state) => state.auth.user);
 
 
@@ -14,19 +13,19 @@ const Users = () => {
 
   useEffect(() => {
     // Fetch all users
-    fetch(`${API_URL}/user?userId=${userId}`)
+    fetch(`${API_URL}/user?userId=${user.userId}`)
       .then((res) => res.json())
       .then((data) => {
         setUsers(data);
       });
-  }, [userId]);
+  }, [user.userId]);
 
   const sendFriendRequest = async (toUserId) => {
     try {
       const response = await fetch(`${API_URL}/user/friend-request`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromUserId: userId, toUserId }),
+        body: JSON.stringify({ fromUserId: user.userId, toUserId }),
       });
 
       const result = await response.json();
@@ -35,7 +34,7 @@ const Users = () => {
       if (response.ok) {
         // Emit the friend request notification in real-time
         socket.emit("sendFriendRequest", {
-          from: { _id: userId, username: user },
+          from: { _id: user.userId, username: user.username },
           toUserId,
           _id,
         });

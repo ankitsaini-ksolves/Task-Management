@@ -9,8 +9,7 @@ const API_URL = process.env.REACT_APP_BASE_URL;
 const ChatFooter = () => {
    const dispatch = useDispatch();
    const chatRoomId = useSelector((state) => state.chat.chatRoomId);
-     const userId = useSelector((state) => state.auth.userId);
-       const user = useSelector((state) => state.auth.user);
+   const user = useSelector((state) => state.auth.user);
      
 
    const [message, setMessage] = useState("");
@@ -33,7 +32,12 @@ const ChatFooter = () => {
    const handleSendMessage = () => {
      if (message.trim() === "") return;
 
-     const newMessage = { chatRoomId, sender: userId, content: message, senderName: user };
+     const newMessage = {
+       chatRoomId,
+       sender: user.userId,
+       content: message,
+       senderName: user.username,
+     };
 
      dispatch(sendMessage(newMessage));
 

@@ -1,10 +1,12 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTasks, updateTaskStatus } from "../redux/taskSlice";
+import { toast } from "react-toastify";
+
 
 const Dashboard = () => {
   const dispatch = useDispatch();
-  const userId = useSelector((state) => state.auth.userId);
+  const userId = useSelector((state) => state.auth.user.userId);
   const tasks = useSelector((state) => state.tasks.tasks);
   const status = useSelector((state) => state.tasks.status);
   const error = useSelector((state) => state.tasks.error);
@@ -23,6 +25,8 @@ const Dashboard = () => {
         ? "completed"
         : "pending";
     dispatch(updateTaskStatus({userId, taskId, status: newStatus }));
+    toast.success(`Marked as ${newStatus}`, { autoClose: 2000 });
+    
   };
 
   return (
